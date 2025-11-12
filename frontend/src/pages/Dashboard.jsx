@@ -98,7 +98,11 @@ export default function Dashboard(){
         <header className="header section">
           <h1 className="brand">🍻 Ping for Beer</h1>
           <div className="header-actions">
-            <button className="btn" onClick={()=>setShowNew(true)}>+ Create Ping</button>
+<button className="btn" onClick={() => navigate("/create-ping")}>
+  🍺 Ping For Beer!
+</button>
+
+
             <button
               className="btn secondary"
               onClick={()=>{
