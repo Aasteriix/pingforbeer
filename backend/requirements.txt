@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+bcrypt
+PyJWT
+python-multipart
+python-dotenv
+anyio
+pydantic[email]
+ale mbic
+authlib
+ppasslib[bcrypt] python-jose
