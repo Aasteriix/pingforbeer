@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { me, inbox, respond, friends, createPing, API_ORIGIN } from "../api";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar.jsx";
 
 export default function Dashboard(){
   const [user,setUser] = useState(null);
@@ -10,11 +11,11 @@ export default function Dashboard(){
   const [loading,setLoading] = useState(true);
   const [err,setErr] = useState("");
 
-  // modal state
+  // (optional) modal state if you re-enable inline create
   const [showNew,setShowNew] = useState(false);
   const [sending,setSending] = useState(false);
 
-  // form
+  // (modal form fields)
   const [title,setTitle] = useState("Beer?");
   const [location,setLocation] = useState("Local pub");
   const [startsAt,setStartsAt] = useState("");
@@ -62,7 +63,7 @@ export default function Dashboard(){
     if(!canSend) return;
     setSending(true);
     try{
-      const invitee_ids = myFriends.map(f => f.id); // MVP: invite all
+      const invitee_ids = myFriends.map(f => f.id); // MVP: invite all friends
       await createPing({
         title: title.trim(),
         location: location.trim(),
@@ -93,28 +94,12 @@ export default function Dashboard(){
 
   return (
     <div className="theme-purple">
+      <Navbar
+        onCreatePing={() => navigate("/create-ping")}
+        onLogout={() => { localStorage.removeItem("token"); navigate("/login"); }}
+      />
+
       <div className="container shell">
-        {/* Header */}
-        <header className="header section">
-          <h1 className="brand">🍻 Ping for Beer</h1>
-          <div className="header-actions">
-<button className="btn" onClick={() => navigate("/create-ping")}>
-  🍺 Ping For Beer!
-</button>
-
-
-            <button
-              className="btn secondary"
-              onClick={()=>{
-                localStorage.removeItem("token");
-                navigate("/login");
-              }}
-            >
-              Logout
-            </button>
-          </div>
-        </header>
-
         <div className="kicker section">
           Logged in as <b>{user.name}</b> ({user.email})
         </div>
@@ -175,7 +160,7 @@ export default function Dashboard(){
           ))}
         </section>
 
-        {/* Modal: Create Ping */}
+        {/* Optional inline Create Ping modal */}
         {showNew && (
           <div className="modal-overlay" onClick={()=>setShowNew(false)}>
             <div className="modal" onClick={(e)=>e.stopPropagation()}>
@@ -184,22 +169,10 @@ export default function Dashboard(){
                 <button className="btn ghost" onClick={()=>setShowNew(false)}>✕</button>
               </div>
               <div className="inputs">
+                <input className="input" placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)} />
+                <input className="input" placeholder="Location" value={location} onChange={e=>setLocation(e.target.value)} />
                 <input
-                  className="input"
-                  placeholder="Title"
-                  value={title}
-                  onChange={e=>setTitle(e.target.value)}
-                />
-                <input
-                  className="input"
-                  placeholder="Location"
-                  value={location}
-                  onChange={e=>setLocation(e.target.value)}
-                />
-                <input
-                  className="input"
-                  type="datetime-local"
-                  value={startsAt}
+                  className="input" type="datetime-local" value={startsAt}
                   min={new Date(Date.now() - 60_000).toISOString().slice(0,16)}
                   onChange={e=>setStartsAt(e.target.value)}
                 />

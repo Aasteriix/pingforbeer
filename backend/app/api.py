@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, Query, status
 from sqlalchemy.orm import Session
+from sqlalchemy import and_, or_
 from datetime import datetime
 from typing import List
 from .auth import get_db, hash_pw, verify_pw, make_token, current_user
@@ -170,3 +171,54 @@ def ics_public(ping_id: int, sig: str, db: Session = Depends(get_db)):
         media_type="text/calendar",
         headers={"Content-Disposition": f'attachment; filename="ping-{ping_id}.ics"'},
     )
+
+
+# ---- Users ----
+@r.get("/users/search", response_model=List[schemas.UserOut])
+def search_users(q: str = Query(..., min_length=1), user: models.User = Depends(current_user), db: Session = Depends(get_db)):
+    # simple name/email ilike search; exclude self
+    like = f"%{q.lower()}%"
+    return (
+        db.query(models.User)
+        .filter(models.User.id != user.id)
+        .filter((models.User.name.ilike(like)) | (models.User.email.ilike(like)))
+        .limit(25)
+        .all()
+    )
+
+@r.get("/users/{user_id}", response_model=schemas.UserOut)
+def get_user_profile(user_id: int, _: models.User = Depends(current_user), db: Session = Depends(get_db)):
+    u = db.query(models.User).get(user_id)
+    if not u:
+        raise HTTPException(404, "User not found")
+    return u
+
+
+@r.delete("/friends/{other_id}", status_code=204)
+def unfriend(
+    other_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    """Remove friendship (and any pending requests) both ways."""
+    # If your schema has a Friendship table:
+    if hasattr(models, "Friendship"):
+        db.query(models.Friendship).filter(
+            or_(
+                and_(models.Friendship.user_id == user.id, models.Friendship.friend_id == other_id),
+                and_(models.Friendship.user_id == other_id, models.Friendship.friend_id == user.id),
+            )
+        ).delete(synchronize_session=False)
+
+    # Also remove any friend requests in either direction (pending/approved/etc.)
+    if hasattr(models, "FriendRequest"):
+        q = db.query(models.FriendRequest).filter(
+            or_(
+                and_(models.FriendRequest.requester_id == user.id, models.FriendRequest.recipient_id == other_id),
+                and_(models.FriendRequest.requester_id == other_id, models.FriendRequest.recipient_id == user.id),
+            )
+        )
+        # If you model friendships as approved FriendRequest rows only, the above line removes those too.
+        q.delete(synchronize_session=False)
+
+    db.commit()

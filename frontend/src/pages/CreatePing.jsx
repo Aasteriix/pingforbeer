@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { me, friends, createPing } from "../api";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar.jsx";
 
 export default function CreatePing() {
   const [user, setUser] = useState(null);
@@ -13,6 +14,7 @@ export default function CreatePing() {
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState("");
   const navigate = useNavigate();
+
 
   useEffect(() => {
     (async () => {
