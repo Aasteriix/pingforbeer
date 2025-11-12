@@ -1,4 +1,5 @@
 const API = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api").replace(/\/+$/,"");
+export const API_ORIGIN = API.replace(/\/api$/,""); // <-- add this
 
 export const setToken = (t) => localStorage.setItem("token", t);
 export const getToken = () => localStorage.getItem("token");
@@ -33,7 +34,7 @@ export async function login(email, password) {
   }));
 }
 
-export async function me() { return okJson(await fetch(`${API}/me`, { headers: authHeaders() })); }
+export async function me(){ return okJson(await fetch(`${API}/me`, { headers: authHeaders() })); }
 export async function friends(){ return okJson(await fetch(`${API}/friends`, { headers: authHeaders() })); }
 export async function requestFriend(id){ return okJson(await fetch(`${API}/friends/${id}/request`, { method:"POST", headers: authHeaders() })); }
 export async function approveFriend(id){ return okJson(await fetch(`${API}/friends/${id}/approve`, { method:"POST", headers: authHeaders() })); }

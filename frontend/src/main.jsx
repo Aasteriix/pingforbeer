@@ -5,6 +5,9 @@ import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
+import "./styles/theme.css";
+
+
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
