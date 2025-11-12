@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import List
@@ -63,52 +63,110 @@ def friends(user:models.User=Depends(current_user), db:Session=Depends(get_db)):
     ids+= [f.user_id for f in db.query(models.Friendship).filter_by(friend_id=user.id, status=models.FriendshipStatus.accepted)]
     return db.query(models.User).filter(models.User.id.in_(ids)).all() if ids else []
 
-def ping_out(p:models.Ping, db:Session)->schemas.PingOut:
-    creator=db.query(models.User).get(p.creator_id)
-    invites=db.query(models.PingInvite).filter_by(ping_id=p.id).all()
-    users={u.id:u for u in db.query(models.User).filter(models.User.id.in_([i.invitee_id for i in invites])).all()}
-    ics_url=f"/api/pings/{p.id}/ics-public?sig={p.ics_secret}"
+def ping_out(p: models.Ping, db: Session) -> schemas.PingOut:
+    # Prefer Session.get in SQLAlchemy 1.4+/2.0
+    creator = db.get(models.User, p.creator_id)
+    invites = db.query(models.PingInvite).filter_by(ping_id=p.id).all()
+    user_ids = [i.invitee_id for i in invites]
+    users = {u.id: u for u in db.query(models.User).filter(models.User.id.in_(user_ids)).all()} if user_ids else {}
+    ics_url = f"/api/pings/{p.id}/ics-public?sig={p.ics_secret}"
     return schemas.PingOut(
-        id=p.id, title=p.title, starts_at=p.starts_at, location=p.location, notes=p.notes,
+        id=p.id,
+        title=p.title,
+        starts_at=p.starts_at,
+        location=p.location,
+        notes=p.notes,
         creator=schemas.UserOut.model_validate(creator),
-        invites=[{"user":schemas.UserOut.model_validate(users[i.invitee_id]), "status":i.status.value} for i in invites],
-        ics_public_url=ics_url
+        invites=[{"user": schemas.UserOut.model_validate(users[i.invitee_id]), "status": i.status.value} for i in invites],
+        ics_public_url=ics_url,
     )
 
-@r.post("/pings", response_model=schemas.PingOut)
-def create_ping(data:schemas.PingCreate, user:models.User=Depends(current_user), db:Session=Depends(get_db)):
-    p=models.Ping(creator_id=user.id, title=data.title, starts_at=data.starts_at, location=data.location, notes=data.notes)
-    db.add(p); db.commit(); db.refresh(p)
-    for invitee_id in data.invitee_ids:
+
+@r.post("/pings", response_model=schemas.PingOut, status_code=status.HTTP_201_CREATED)
+def create_ping(data: schemas.PingCreate, user: models.User = Depends(current_user), db: Session = Depends(get_db)):
+    # Require at least one invitee
+    if not data.invitee_ids:
+        raise HTTPException(400, "At least one invitee is required")
+
+    # Optional: only allow inviting accepted friends (and not duplicates / self)
+    # Build set of friend IDs
+    my_friend_ids = set()
+    for fr in db.query(models.Friendship).filter_by(user_id=user.id, status=models.FriendshipStatus.accepted):
+        my_friend_ids.add(fr.friend_id)
+    for fr in db.query(models.Friendship).filter_by(friend_id=user.id, status=models.FriendshipStatus.accepted):
+        my_friend_ids.add(fr.user_id)
+
+    clean_invitees = []
+    for i in set(data.invitee_ids):
+        if i == user.id:
+            continue  # don’t invite yourself; you’re creator
+        if i not in my_friend_ids:
+            raise HTTPException(400, f"Invitee {i} is not your accepted friend")
+        clean_invitees.append(i)
+
+    if not clean_invitees:
+        raise HTTPException(400, "No valid invitees after filtering")
+
+    # Create ping
+    p = models.Ping(
+        creator_id=user.id,
+        title=data.title,
+        starts_at=data.starts_at,  # assume UTC coming from client
+        location=data.location,
+        notes=(data.notes or "").strip(),
+    )
+    db.add(p)
+    db.commit()
+    db.refresh(p)
+
+    # Create invites (unique per invitee)
+    for invitee_id in clean_invitees:
         db.add(models.PingInvite(ping_id=p.id, invitee_id=invitee_id))
     db.commit()
+
     return ping_out(p, db)
+
 
 @r.get("/pings/inbox", response_model=List[schemas.PingOut])
-def inbox(user:models.User=Depends(current_user), db:Session=Depends(get_db)):
-    my_creations=db.query(models.Ping).filter_by(creator_id=user.id).all()
-    my_invites=db.query(models.Ping).join(models.PingInvite, models.Ping.id==models.PingInvite.ping_id)\
-        .filter(models.PingInvite.invitee_id==user.id, models.PingInvite.status!=models.InviteStatus.declined).all()
-    ids={p.id for p in my_creations+my_invites}
-    return [ping_out(db.query(models.Ping).get(pid), db) for pid in ids]
+def inbox(user: models.User = Depends(current_user), db: Session = Depends(get_db)):
+    my_creations = db.query(models.Ping).filter_by(creator_id=user.id)
+    my_invites = db.query(models.Ping).join(models.PingInvite, models.Ping.id == models.PingInvite.ping_id) \
+        .filter(models.PingInvite.invitee_id == user.id,
+                models.PingInvite.status != models.InviteStatus.declined)
+
+    # union of ids, sorted by start time ascending
+    ids = {p.id for p in my_creations.all()} | {p.id for p in my_invites.all()}
+    rows = db.query(models.Ping).filter(models.Ping.id.in_(ids)).order_by(models.Ping.starts_at.asc()).all() if ids else []
+    return [ping_out(p, db) for p in rows]
+
 
 @r.get("/pings/{ping_id}", response_model=schemas.PingOut)
-def get_ping(ping_id:int, user:models.User=Depends(current_user), db:Session=Depends(get_db)):
-    p=db.query(models.Ping).get(ping_id)
-    if not p: raise HTTPException(404)
+def get_ping(ping_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)):
+    p = db.get(models.Ping, ping_id)
+    if not p:
+        raise HTTPException(404)
     return ping_out(p, db)
 
+
 @r.post("/pings/{ping_id}/respond")
-def respond(ping_id:int, data:schemas.RespondIn, user:models.User=Depends(current_user), db:Session=Depends(get_db)):
-    inv=db.query(models.PingInvite).filter_by(ping_id=ping_id, invitee_id=user.id).first()
-    if not inv: raise HTTPException(404, "No invite found")
-    inv.status=models.InviteStatus(data.status); inv.responded_at=datetime.utcnow()
-    db.commit(); return {"ok":True}
+def respond(ping_id: int, data: schemas.RespondIn, user: models.User = Depends(current_user), db: Session = Depends(get_db)):
+    inv = db.query(models.PingInvite).filter_by(ping_id=ping_id, invitee_id=user.id).first()
+    if not inv:
+        raise HTTPException(404, "No invite found")
+    inv.status = models.InviteStatus(data.status)
+    inv.responded_at = datetime.utcnow()
+    db.commit()
+    return {"ok": True}
+
 
 @r.get("/pings/{ping_id}/ics-public")
-def ics_public(ping_id:int, sig:str, db:Session=Depends(get_db)):
-    p=db.query(models.Ping).get(ping_id)
-    if not p or sig!=p.ics_secret: raise HTTPException(404)
-    ics=generate_ics(f"ping-{ping_id}@pfb", p.title, p.starts_at, 120, p.location)
-    return Response(content=ics, media_type="text/calendar",
-                    headers={"Content-Disposition": f'attachment; filename="ping-{ping_id}.ics"'})
+def ics_public(ping_id: int, sig: str, db: Session = Depends(get_db)):
+    p = db.get(models.Ping, ping_id)
+    if not p or sig != p.ics_secret:
+        raise HTTPException(404)
+    ics = generate_ics(f"ping-{ping_id}@pfb", p.title, p.starts_at, 120, p.location)
+    return Response(
+        content=ics,
+        media_type="text/calendar",
+        headers={"Content-Disposition": f'attachment; filename="ping-{ping_id}.ics"'},
+    )
