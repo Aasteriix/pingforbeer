@@ -7,3 +7,5 @@ dist/
 build/
 frontend/.vite/
 .env
+__pycache__/
+*.pyc

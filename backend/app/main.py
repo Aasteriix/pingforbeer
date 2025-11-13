@@ -5,7 +5,8 @@ from . import api
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="PingForBeer API")
+# Renamed API
+app = FastAPI(title="Aura API")
 
 # DEV-ONLY CORS (allow everything). Note: allow_credentials must be False with "*"
 app.add_middleware(
