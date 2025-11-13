@@ -16,8 +16,8 @@ export default function Dashboard(){
   const [sending,setSending] = useState(false);
 
   // (modal form fields)
-  const [title,setTitle] = useState("Beer?");
-  const [location,setLocation] = useState("Local pub");
+  const [title,setTitle] = useState("Set the vibe ✨");
+  const [location,setLocation] = useState("Local spot");
   const [startsAt,setStartsAt] = useState("");
 
   const navigate = useNavigate();
@@ -74,7 +74,7 @@ export default function Dashboard(){
       setStartsAt("");
       await loadAll();
     }catch(e){
-      setErr(e?.message || "Failed to create ping");
+      setErr(e?.message || "Failed to set the vibe");
     }finally{
       setSending(false);
     }
@@ -107,30 +107,30 @@ export default function Dashboard(){
         {/* Overview cards */}
         <section className="cards section">
           <div className="card">
-            <div className="card-title">Friends</div>
+            <div className="card-title">Connections</div>
             <div className="card-value">{myFriends.length}</div>
             <div className="card-sub">Total</div>
           </div>
           <div className="card">
             <div className="card-title">Pending replies</div>
             <div className="card-value">{pendingCount}</div>
-            <div className="card-sub">Needs your action</div>
+            <div className="card-sub">Needs your energy</div>
           </div>
           <div className="card">
-            <div className="card-title">Next ping</div>
+            <div className="card-title">Next vibe</div>
             <div className="card-value">
               {nextPing ? new Date(nextPing.starts_at).toLocaleString() : "—"}
             </div>
             <div className="card-sub">
-              {nextPing ? nextPing.title : "No upcoming"}
+              {nextPing ? nextPing.title : "No upcoming vibes"}
             </div>
           </div>
         </section>
 
         {/* Upcoming list */}
         <section className="list section">
-          <h3 className="section-title">Upcoming</h3>
-          {items.length === 0 && <div className="kicker">No pings yet.</div>}
+          <h3 className="section-title">Upcoming vibes</h3>
+          {items.length === 0 && <div className="kicker">No vibes yet. Set the first one ✨</div>}
           {items.map(p=>(
             <div key={p.id} className="item">
               <div className="item-head" style={{width:"100%"}}>
@@ -160,28 +160,40 @@ export default function Dashboard(){
           ))}
         </section>
 
-        {/* Optional inline Create Ping modal */}
+        {/* Optional inline “Set the Vibe” modal */}
         {showNew && (
           <div className="modal-overlay" onClick={()=>setShowNew(false)}>
             <div className="modal" onClick={(e)=>e.stopPropagation()}>
               <div className="modal-head">
-                <h3 style={{margin:0}}>Create Ping</h3>
+                <h3 style={{margin:0}}>Set the vibe</h3>
                 <button className="btn ghost" onClick={()=>setShowNew(false)}>✕</button>
               </div>
               <div className="inputs">
-                <input className="input" placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)} />
-                <input className="input" placeholder="Location" value={location} onChange={e=>setLocation(e.target.value)} />
                 <input
-                  className="input" type="datetime-local" value={startsAt}
+                  className="input"
+                  placeholder="What's the vibe?"
+                  value={title}
+                  onChange={e=>setTitle(e.target.value)}
+                />
+                <input
+                  className="input"
+                  placeholder="Where?"
+                  value={location}
+                  onChange={e=>setLocation(e.target.value)}
+                />
+                <input
+                  className="input"
+                  type="datetime-local"
+                  value={startsAt}
                   min={new Date(Date.now() - 60_000).toISOString().slice(0,16)}
                   onChange={e=>setStartsAt(e.target.value)}
                 />
-                <div className="kicker">Invites: all friends ({myFriends.length}).</div>
+                <div className="kicker">Invites: all connections ({myFriends.length}).</div>
                 {err && <div style={{color:"#ff6a6a"}}>{err}</div>}
                 <div className="modal-actions">
                   <button className="btn secondary" onClick={()=>setShowNew(false)} disabled={sending}>Cancel</button>
                   <button className="btn" onClick={submitNewPing} disabled={!canSend}>
-                    {sending ? "Creating…" : "Create"}
+                    {sending ? "Setting the vibe…" : "Set the vibe"}
                   </button>
                 </div>
               </div>

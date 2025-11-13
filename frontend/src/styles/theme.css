@@ -154,6 +154,12 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif, 
 .nav-link.active{ opacity:1; text-decoration:underline; }
 .actions{ margin-left:auto; display:flex; gap:12px; }
 
+/* Make navbar links white & readable */
+.nav-link,
+.nav-link.active {
+  color: var(--white) !important;
+}
+
 .hamburger{ display:none; margin-left:auto; }
 
 /* Mobile */

@@ -34,16 +34,16 @@ export default function UserProfile() {
         <div className="header">
           <h1 className="brand">{user.name}</h1>
           <div className="header-actions">
-            <Link className="btn ghost" to="/friends">← Back to friends</Link>
+            <Link className="btn ghost" to="/friends">← Back to connections</Link>
             {!isMe && (
               <button
                 className="btn"
                 onClick={async () => {
                   await requestFriend(token, user.id);
-                  alert("Friend request sent");
+                  alert("Connection request sent ✨");
                 }}
               >
-                Add friend
+                Connect
               </button>
             )}
           </div>
