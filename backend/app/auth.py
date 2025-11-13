@@ -7,8 +7,7 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session
 
 from .db import SessionLocal
 from . import models
@@ -18,17 +17,13 @@ SECRET_KEY = os.getenv("JWT_SECRET", "dev-secret-change-me")
 ALGORITHM = os.getenv("JWT_ALG", "HS256")
 ACCESS_TOKEN_EXPIRES_MIN = int(os.getenv("JWT_EXPIRES_MIN", "60"))
 
-pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
-bearer = HTTPBearer(auto_error=True)
-
-
-from passlib.context import CryptContext
-
-# Support both: verify old hashes ("bcrypt") and create new ones with "bcrypt_sha256"
+# Password hashing: support old bcrypt + new bcrypt_sha256
 pwd_ctx = CryptContext(
     schemes=["bcrypt_sha256", "bcrypt"],
     deprecated="auto",
 )
+
+bearer = HTTPBearer(auto_error=True)
 
 # --- DB dependency ---
 def get_db():
