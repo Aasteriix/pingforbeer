@@ -2,37 +2,72 @@ import React, { useState } from "react";
 import { registerAccount, setToken } from "../api";
 import { Link } from "react-router-dom";
 
-export default function Register(){
-  const [name,setName]=useState("");
-  const [email,setEmail]=useState("");
-  const [password,setPassword]=useState("");
-  const [err,setErr]=useState("");
+export default function Register() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [err, setErr] = useState("");
 
-  async function onSubmit(e){
+  async function onSubmit(e) {
     e.preventDefault();
-    try{
+    try {
       const r = await registerAccount(email, name, password, "Europe/Stockholm");
-      setToken(r.access_token);              // save token
-      window.location.href = "/dashboard";   // hard reload
-    }catch(e){
-      setErr(e.message || "Registration failed");
+      setToken(r.access_token);
+      window.location.href = "/dashboard";
+    } catch (e) {
+      setErr(e.message || "Something went wrong. Try again.");
     }
   }
 
   return (
     <div style={wrap}>
-      <h2>Create account</h2>
+      <h2 style={{ textAlign: "center" }}>✨ Create Your Aura</h2>
+
       <form onSubmit={onSubmit} style={form}>
-        <input placeholder="Name" value={name} onChange={e=>setName(e.target.value)} />
-        <input placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} />
-        <input placeholder="Password" type="password" value={password} onChange={e=>setPassword(e.target.value)} />
-        <button type="submit">Register</button>
-        {err && <div style={{color:"red",whiteSpace:"pre-wrap"}}>{err}</div>}
+        <input
+          placeholder="Your name"
+          value={name}
+          onChange={e => setName(e.target.value)}
+        />
+
+        <input
+          placeholder="Your email"
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+        />
+
+        <input
+          placeholder="Choose a password"
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+        />
+
+        <button type="submit">Join Aura</button>
+
+        {err && (
+          <div style={{ color: "#ff6a6a", whiteSpace: "pre-wrap" }}>
+            {err}
+          </div>
+        )}
       </form>
-      <p>Already have an account? <Link to="/login">Back to login</Link></p>
+
+      <p style={{ textAlign: "center" }}>
+        Already have an account? <Link to="/login">Log in</Link>
+      </p>
     </div>
   );
 }
 
-const wrap={maxWidth:360,margin:"80px auto",display:"grid",gap:12};
-const form={display:"grid",gap:10};
+const wrap = {
+  maxWidth: 360,
+  margin: "80px auto",
+  display: "grid",
+  gap: 12,
+};
+
+const form = {
+  display: "grid",
+  gap: 10,
+};

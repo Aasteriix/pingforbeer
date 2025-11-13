@@ -9,7 +9,7 @@ import {
   requestFriend,
   approveFriend,
   declineFriend,
-  deleteFriend,            // <-- make sure this exists in api.js
+  deleteFriend,
 } from "../api";
 
 export default function Friends() {
@@ -31,6 +31,7 @@ export default function Friends() {
     setIncoming(reqs);
     setFriends(frs);
   }
+
   useEffect(() => { if (token) refresh(); }, [token]);
 
   async function doSearch(e) {
@@ -39,14 +40,19 @@ export default function Friends() {
     setLoading(true);
     try {
       setResults(await searchUsers(token, q.trim()));
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   }
 
-  async function handleRequest(id) { await requestFriend(token, id); alert("Request sent"); }
+  async function handleRequest(id) {
+    await requestFriend(token, id);
+    alert("Request sent ✨");
+  }
   async function handleApprove(id) { await approveFriend(token, id); refresh(); }
   async function handleDecline(id) { await declineFriend(token, id); refresh(); }
   async function handleRemove(id) {
-    if (!confirm("Remove this friend?")) return;
+    if (!confirm("Remove this connection?")) return;
     await deleteFriend(token, id);
     refresh();
   }
@@ -57,19 +63,41 @@ export default function Friends() {
 
       <div className="container shell section">
         <div className="header">
-          <h1 className="brand">Find your beer crew 🍻</h1>
+          <h1 className="brand">Find your people ✨ ✨</h1>
           <div className="header-actions">
-            <button className={`btn ${tab==="search"?"":"ghost"}`} onClick={()=>setTab("search")}>Search</button>
-            <button className={`btn ${tab==="requests"?"":"ghost"}`} onClick={()=>setTab("requests")}>Requests ({incoming.length})</button>
-            <button className={`btn ${tab==="friends"?"":"ghost"}`} onClick={()=>setTab("friends")}>My friends ({friends.length})</button>
+            <button
+              className={`btn ${tab==="search" ? "" : "ghost"}`}
+              onClick={()=>setTab("search")}
+            >
+              Search
+            </button>
+            <button
+              className={`btn ${tab==="requests" ? "" : "ghost"}`}
+              onClick={()=>setTab("requests")}
+            >
+              Requests ({incoming.length})
+            </button>
+            <button
+              className={`btn ${tab==="friends" ? "" : "ghost"}`}
+              onClick={()=>setTab("friends")}
+            >
+              Connections ({friends.length})
+            </button>
           </div>
         </div>
 
         {tab==="search" && (
           <form onSubmit={doSearch} className="section">
-            <input className="input" placeholder="Search by name or email…" value={q} onChange={e=>setQ(e.target.value)} />
+            <input
+              className="input"
+              placeholder="Search by name or email…"
+              value={q}
+              onChange={e=>setQ(e.target.value)}
+            />
             <div style={{height:8}} />
-            <button className="btn" type="submit" disabled={loading}>{loading?"Searching…":"Search"}</button>
+            <button className="btn" type="submit" disabled={loading}>
+              {loading ? "Searching…" : "Search"}
+            </button>
             <div className="list" style={{marginTop:12}}>
               {results.map(u=>(
                 <div key={u.id} className="item">
@@ -84,10 +112,10 @@ export default function Friends() {
                         className="btn"
                         type="button"
                         disabled={friendIds.has(u.id)}
-                        title={friendIds.has(u.id) ? "Already friends" : ""}
+                        title={friendIds.has(u.id) ? "Already connected" : ""}
                         onClick={()=>handleRequest(u.id)}
                       >
-                        {friendIds.has(u.id) ? "Friends" : "Add friend"}
+                        {friendIds.has(u.id) ? "Connected" : "Connect"}
                       </button>
                     </div>
                   </div>
@@ -99,7 +127,9 @@ export default function Friends() {
 
         {tab==="requests" && (
           <div className="list section">
-            {incoming.length===0 && <div className="kicker">No incoming requests.</div>}
+            {incoming.length===0 && (
+              <div className="kicker">No incoming requests right now.</div>
+            )}
             {incoming.map(u=>(
               <div key={u.id} className="item">
                 <div className="item-head">
@@ -108,8 +138,12 @@ export default function Friends() {
                     <div className="card-sub">{u.email}</div>
                   </div>
                   <div className="item-actions">
-                    <button className="btn" onClick={()=>handleApprove(u.id)} type="button">Accept</button>
-                    <button className="btn secondary" onClick={()=>handleDecline(u.id)} type="button">Decline</button>
+                    <button className="btn" onClick={()=>handleApprove(u.id)} type="button">
+                      Accept
+                    </button>
+                    <button className="btn secondary" onClick={()=>handleDecline(u.id)} type="button">
+                      Decline
+                    </button>
                   </div>
                 </div>
               </div>
@@ -119,7 +153,9 @@ export default function Friends() {
 
         {tab==="friends" && (
           <div className="list section">
-            {friends.length===0 && <div className="kicker">You haven’t added any friends yet.</div>}
+            {friends.length===0 && (
+              <div className="kicker">You haven’t added any connections yet.</div>
+            )}
             {friends.map(u=>(
               <div key={u.id} className="item">
                 <div className="item-head">
@@ -129,7 +165,11 @@ export default function Friends() {
                   </div>
                   <div className="item-actions">
                     <a className="btn ghost" href={`/u/${u.id}`}>View profile</a>
-                    <button className="btn secondary" type="button" onClick={()=>handleRemove(u.id)}>
+                    <button
+                      className="btn secondary"
+                      type="button"
+                      onClick={()=>handleRemove(u.id)}
+                    >
                       Remove
                     </button>
                   </div>
