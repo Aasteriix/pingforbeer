@@ -5,21 +5,27 @@ def auth_header(token: str) -> dict:
 
 def test_full_flow_register_friends_aura(client):
     # 1. Registrera två användare
-    r1 = client.post("/api/auth/register", json={
-        "email": "user1@example.com",
-        "name": "User One",
-        "password": "secret1",
-        "timezone": "Europe/Stockholm",
-    })
+    r1 = client.post(
+        "/api/auth/register",
+        json={
+            "email": "user1@example.com",
+            "name": "User One",
+            "password": "secret1",
+            "timezone": "Europe/Stockholm",
+        },
+    )
     assert r1.status_code == 200
     token1 = r1.json()["access_token"]
 
-    r2 = client.post("/api/auth/register", json={
-        "email": "user2@example.com",
-        "name": "User Two",
-        "password": "secret2",
-        "timezone": "Europe/Stockholm",
-    })
+    r2 = client.post(
+        "/api/auth/register",
+        json={
+            "email": "user2@example.com",
+            "name": "User Two",
+            "password": "secret2",
+            "timezone": "Europe/Stockholm",
+        },
+    )
     assert r2.status_code == 200
     token2 = r2.json()["access_token"]
 
@@ -45,13 +51,17 @@ def test_full_flow_register_friends_aura(client):
     assert r.status_code == 200
 
     # 6. User1 skapar en aura och bjuder in user2
-    r = client.post("/api/pings", headers=auth_header(token1), json={
-        "title": "After work",
-        "location": "Local bar",
-        "starts_at": "2030-01-01T18:00:00Z",
-        "invitee_ids": [user2_id],
-        "notes": "Kom som du är!",
-    })
+    r = client.post(
+        "/api/pings",
+        headers=auth_header(token1),
+        json={
+            "title": "After work",
+            "location": "Local bar",
+            "starts_at": "2030-01-01T18:00:00Z",
+            "invitee_ids": [user2_id],
+            "notes": "Kom som du är!",
+        },
+    )
     assert r.status_code == 201
     aura = r.json()
     assert aura["title"] == "After work"

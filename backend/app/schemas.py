@@ -1,7 +1,10 @@
 from __future__ import annotations
-from pydantic import BaseModel, EmailStr, field_validator
-from typing import List, Optional, Literal
+
 from datetime import datetime
+from typing import List, Literal, Optional
+
+from pydantic import BaseModel, EmailStr, field_validator
+
 
 # -------- Auth --------
 class RegisterIn(BaseModel):
@@ -10,12 +13,15 @@ class RegisterIn(BaseModel):
     password: str
     timezone: Optional[str] = "Europe/Stockholm"
 
+
 class LoginIn(BaseModel):
     email: EmailStr
     password: str
 
+
 class TokenOut(BaseModel):
     access_token: str
+
 
 # -------- Users --------
 class UserOut(BaseModel):
@@ -23,12 +29,16 @@ class UserOut(BaseModel):
     email: EmailStr
     name: str
     timezone: Optional[str] = None
-    class Config: from_attributes = True  # Pydantic v2 (orm_mode replacement)
+
+    class Config:
+        from_attributes = True  # Pydantic v2 (orm_mode replacement)
+
 
 # -------- Invites --------
 class InviteOut(BaseModel):
     user: UserOut
     status: Literal["pending", "accepted", "declined", "maybe"]
+
 
 # -------- Pings --------
 class PingCreate(BaseModel):
@@ -65,6 +75,7 @@ class PingCreate(BaseModel):
             raise ValueError("notes too long (max 1000)")
         return v
 
+
 class PingOut(BaseModel):
     id: int
     title: str
@@ -75,7 +86,9 @@ class PingOut(BaseModel):
     invites: List[InviteOut]
     ics_public_url: str
 
-    class Config: from_attributes = True
+    class Config:
+        from_attributes = True
+
 
 # -------- Respond --------
 class RespondIn(BaseModel):

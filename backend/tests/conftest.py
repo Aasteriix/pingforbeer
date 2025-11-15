@@ -1,19 +1,20 @@
 # backend/tests/conftest.py
 import os
 import sys
+
 import pytest
 from fastapi.testclient import TestClient
 
 # Lägg till backend-mappen på sys.path så att "import app" funkar
-HERE = os.path.dirname(os.path.abspath(__file__))      # .../pingforbeer/backend/tests
-BACKEND_DIR = os.path.dirname(HERE)                    # .../pingforbeer/backend
+HERE = os.path.dirname(os.path.abspath(__file__))  # .../pingforbeer/backend/tests
+BACKEND_DIR = os.path.dirname(HERE)  # .../pingforbeer/backend
 if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
 # Viktigt: sätt test-databas INNAN app importeras
 os.environ["DATABASE_URL"] = "sqlite:///./test.sqlite3"
 
-from app.db import Base, engine, SessionLocal
+from app.db import Base, SessionLocal, engine
 from app.main import app
 
 

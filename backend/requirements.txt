@@ -8,6 +8,9 @@ python-multipart
 python-dotenv
 anyio
 pydantic[email]
-ale mbic
+alembic
 authlib
 ppasslib[bcrypt] python-jose
+black
+isort
+pytest-cov

@@ -9,8 +9,8 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from .db import SessionLocal
 from . import models
+from .db import SessionLocal
 
 # --- Config ---
 SECRET_KEY = os.getenv("JWT_SECRET", "dev-secret-change-me")
@@ -25,6 +25,7 @@ pwd_ctx = CryptContext(
 
 bearer = HTTPBearer(auto_error=True)
 
+
 # --- DB dependency ---
 def get_db():
     db: Session = SessionLocal()
@@ -33,12 +34,15 @@ def get_db():
     finally:
         db.close()
 
+
 # --- Password helpers ---
 def hash_pw(plain: str) -> str:
     return pwd_ctx.hash(plain)
 
+
 def verify_pw(plain: str, hashed: str) -> bool:
     return pwd_ctx.verify(plain, hashed)
+
 
 # --- JWT helpers ---
 def make_token(user_id: int) -> str:
@@ -51,8 +55,10 @@ def make_token(user_id: int) -> str:
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
+
 def decode_token(token: str) -> dict:
     return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
 
 # --- Auth dependency for protected routes ---
 def current_user(

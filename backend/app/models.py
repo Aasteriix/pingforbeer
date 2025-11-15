@@ -1,8 +1,12 @@
 # backend/app/models.py
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Enum, UniqueConstraint
+import enum
+import secrets
 from datetime import datetime
+
+from sqlalchemy import (Column, DateTime, Enum, ForeignKey, Integer, String,
+                        Text, UniqueConstraint)
+
 from .db import Base
-import enum, secrets
 
 
 class FriendshipStatus(str, enum.Enum):
@@ -43,7 +47,7 @@ class Friendship(Base):
 
 # ⚠️ Keep the CLASS name Ping because api.py uses models.Ping
 class Ping(Base):
-    __tablename__ = "auras"   # table is renamed, code name can stay Ping
+    __tablename__ = "auras"  # table is renamed, code name can stay Ping
 
     id = Column(Integer, primary_key=True)
     creator_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
@@ -52,7 +56,9 @@ class Ping(Base):
     location = Column(String, nullable=False)
     notes = Column(Text, nullable=True)
     status = Column(Enum(AuraStatus), default=AuraStatus.open)
-    ics_secret = Column(String, default=lambda: secrets.token_urlsafe(16), nullable=False)
+    ics_secret = Column(
+        String, default=lambda: secrets.token_urlsafe(16), nullable=False
+    )
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

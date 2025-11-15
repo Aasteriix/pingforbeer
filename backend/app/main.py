@@ -1,7 +1,8 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
-from .db import Base, engine
+
 from . import api
+from .db import Base, engine
 
 Base.metadata.create_all(bind=engine)
 
@@ -17,10 +18,12 @@ app.add_middleware(
     allow_credentials=False,
 )
 
+
 # Fallback for any OPTIONS (preflight) request
 @app.options("/{rest_of_path:path}")
 def options_catch_all(rest_of_path: str):
     return Response(status_code=204)
+
 
 # Routes
 app.include_router(api.r)
