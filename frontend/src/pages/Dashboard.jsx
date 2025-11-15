@@ -39,7 +39,8 @@ export default function Dashboard(){
     }
   }
 
-  useEffect(()=>{ loadAll(); /* eslint-disable-next-line */ },[]);
+useEffect(() => {loadAll(); }, []);
+
 
   const pendingCount = useMemo(()=> {
     const myId = user?.id; if(!myId) return 0;
