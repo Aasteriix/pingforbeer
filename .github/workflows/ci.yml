@@ -27,10 +27,18 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt || pip install .
 
+      - name: Check formatting (black & isort)
+        run: |
+          cd backend
+          pip install black isort
+          black --check app tests
+          isort --check-only app tests
+
       - name: Run tests
         run: |
           cd backend
           pytest --maxfail=1 --disable-warnings -q
+
 
 
   frontend:
