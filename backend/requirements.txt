@@ -1,13 +1,15 @@
 fastapi
 uvicorn[standard]
+
 sqlalchemy
-pydantic
-bcrypt
-PyJWT
-python-multipart
-python-dotenv
-anyio
 pydantic[email]
-ale mbic
-authlib
-ppasslib[bcrypt] python-jose
+
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+
+alembic
+python-dotenv
+
+pytest
+httpx

@@ -2,9 +2,12 @@ name: Backend tests
 
 on:
   push:
-    branches: [ main, feature/testing-ci ]
+    branches:
+      - main
+      - feature/**
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   test-backend:
@@ -15,7 +18,7 @@ jobs:
         working-directory: backend
 
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -25,8 +28,14 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest httpx
 
       - name: Run pytest
-        run: pytest -q
+        run: |
+          source venv/bin/activate
+          pytest -q
+

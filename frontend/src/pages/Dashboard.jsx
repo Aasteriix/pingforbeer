@@ -1,5 +1,5 @@
 // src/pages/Dashboard.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { me, inbox, respond, friends, createPing, API_ORIGIN } from "../api";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
@@ -22,7 +22,7 @@ export default function Dashboard(){
 
   const navigate = useNavigate();
 
-  async function loadAll(){
+  const loadAll = useCallback(async () => {
     setLoading(true);
     try{
       const u = await me();
@@ -37,9 +37,11 @@ export default function Dashboard(){
     }finally{
       setLoading(false);
     }
-  }
+  }, [navigate]);
 
-  useEffect(()=>{ loadAll(); /* eslint-disable-next-line */ },[]);
+  useEffect(() => {
+    loadAll();
+  }, [loadAll]);
 
   const pendingCount = useMemo(()=> {
     const myId = user?.id; if(!myId) return 0;

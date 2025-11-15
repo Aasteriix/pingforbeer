@@ -1,5 +1,5 @@
 // src/pages/Friends.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useAuth } from "../useAuth.jsx";
 import Navbar from "../components/Navbar.jsx";
 import {
@@ -23,16 +23,19 @@ export default function Friends() {
 
   const friendIds = useMemo(() => new Set(friends.map(f => f.id)), [friends]);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
+    if (!token) return;
     const [reqs, frs] = await Promise.all([
       getIncomingRequests(token),
       getFriends(token),
     ]);
     setIncoming(reqs);
     setFriends(frs);
-  }
+  }, [token]);
 
-  useEffect(() => { if (token) refresh(); }, [token]);
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   async function doSearch(e) {
     e?.preventDefault();
@@ -49,8 +52,17 @@ export default function Friends() {
     await requestFriend(token, id);
     alert("Request sent ✨");
   }
-  async function handleApprove(id) { await approveFriend(token, id); refresh(); }
-  async function handleDecline(id) { await declineFriend(token, id); refresh(); }
+
+  async function handleApprove(id) {
+    await approveFriend(token, id);
+    refresh();
+  }
+
+  async function handleDecline(id) {
+    await declineFriend(token, id);
+    refresh();
+  }
+
   async function handleRemove(id) {
     if (!confirm("Remove this connection?")) return;
     await deleteFriend(token, id);
@@ -63,7 +75,7 @@ export default function Friends() {
 
       <div className="container shell section">
         <div className="header">
-          <h1 className="brand">Find your people ✨ ✨</h1>
+          <h1 className="brand">Find your people ✨</h1>
           <div className="header-actions">
             <button
               className={`btn ${tab==="search" ? "" : "ghost"}`}
