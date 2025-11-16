@@ -31,12 +31,12 @@ jobs:
         run: |
           cd backend
           black app tests --check
+          isort app tests --check-only
 
       - name: Run tests
         run: |
           cd backend
           pytest --maxfail=1 --disable-warnings -q
-
 
   frontend:
     name: Frontend lint & build
