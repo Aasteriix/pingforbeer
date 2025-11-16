@@ -109,3 +109,4 @@ class PingInvite(Base):
     __table_args__ = (
         UniqueConstraint("ping_id", "invitee_id", name="uniq_ping_invitee"),
     )
+
