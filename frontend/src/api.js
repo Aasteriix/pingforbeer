@@ -1,15 +1,11 @@
-// src/api.js
-const API = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api").replace(/\/+$/,"");
-export const API_ORIGIN = API.replace(/\/api$/,"");
+// lib/api.ts
+const API = (
+  process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8000/api"
+).replace(/\/+$/, "");
 
-export const setToken = (t) => localStorage.setItem("token", t);
-export const getToken = () => localStorage.getItem("token");
+export const API_ORIGIN = API.replace(/\/api$/, "");
 
-function authHeaders() {
-  return { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` };
-}
-
-async function okJson(res) {
+export async function okJson(res: Response) {
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     const msg = `${res.status} ${res.statusText}${body ? " — " + body : ""}`;
@@ -20,24 +16,35 @@ async function okJson(res) {
 }
 
 /* ---------- Auth ---------- */
-export async function registerAccount(email, name, password, timezone) {
-  return okJson(await fetch(`${API}/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, name, password, timezone })
-  }));
+
+export async function loginApi(email: string, password: string) {
+  return okJson(
+    await fetch(`${API}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    })
+  );
 }
 
-export async function login(email, password) {
-  return okJson(await fetch(`${API}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password })
-  }));
+export async function registerAccount(
+  email: string,
+  name: string,
+  password: string,
+  timezone: string
+) {
+  return okJson(
+    await fetch(`${API}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, name, password, timezone }),
+    })
+  );
 }
 
-/* ---------- Users (token-arg) ---------- */
-export async function searchUsers(token, q) {
+/* ---------- Token-based helpers (mobile) ---------- */
+
+export async function searchUsers(token: string, q: string) {
   const r = await fetch(`${API}/users/search?q=${encodeURIComponent(q)}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -45,7 +52,7 @@ export async function searchUsers(token, q) {
   return r.json();
 }
 
-export async function getUser(token, id) {
+export async function getUser(token: string, id: string | number) {
   const r = await fetch(`${API}/users/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -53,8 +60,7 @@ export async function getUser(token, id) {
   return r.json();
 }
 
-/* ---------- Friends (token-arg) ---------- */
-export async function requestFriend(token, id) {
+export async function requestFriend(token: string, id: string | number) {
   const r = await fetch(`${API}/friends/${id}/request`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
@@ -63,7 +69,7 @@ export async function requestFriend(token, id) {
   return r.json();
 }
 
-export async function approveFriend(token, id) {
+export async function approveFriend(token: string, id: string | number) {
   const r = await fetch(`${API}/friends/${id}/approve`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
@@ -72,7 +78,7 @@ export async function approveFriend(token, id) {
   return r.json();
 }
 
-export async function declineFriend(token, id) {
+export async function declineFriend(token: string, id: string | number) {
   const r = await fetch(`${API}/friends/${id}/decline`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
@@ -81,7 +87,7 @@ export async function declineFriend(token, id) {
   return r.json();
 }
 
-export async function getIncomingRequests(token) {
+export async function getIncomingRequests(token: string) {
   const r = await fetch(`${API}/friends/requests/incoming`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -89,7 +95,7 @@ export async function getIncomingRequests(token) {
   return r.json();
 }
 
-export async function getFriends(token) {
+export async function getFriends(token: string) {
   const r = await fetch(`${API}/friends`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -97,43 +103,7 @@ export async function getFriends(token) {
   return r.json();
 }
 
-/* ---------- Legacy helpers (localStorage token) ---------- */
-/* kept to avoid breaking existing pages like Dashboard/CreatePing */
-export async function me() {
-  return okJson(await fetch(`${API}/me`, { headers: authHeaders() }));
-}
-export async function friends() {
-  return okJson(await fetch(`${API}/friends`, { headers: authHeaders() }));
-}
-// NOTE: removed duplicate requestFriend/approveFriend here
-export async function createPing(payload) {
-  return okJson(await fetch(`${API}/pings`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify(payload)
-  }));
-}
-export async function inbox() {
-  return okJson(await fetch(`${API}/pings/inbox`, { headers: authHeaders() }));
-}
-export async function respond(pingId, status) {
-  return okJson(await fetch(`${API}/pings/${pingId}/respond`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ status })
-  }));
-}
-
-/* ---------- Logout ---------- */
-export function logout() {
-  localStorage.removeItem("token");
-}
-
-/* ---------- Compatibility aliases ---------- */
-export { registerAccount as register };
-
-
-export async function deleteFriend(token, id) {
+export async function deleteFriend(token: string, id: string | number) {
   const r = await fetch(`${API}/friends/${id}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
@@ -142,3 +112,40 @@ export async function deleteFriend(token, id) {
   return true;
 }
 
+export async function me(token: string) {
+  const r = await fetch(`${API}/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return okJson(r);
+}
+
+export async function inbox(token: string) {
+  const r = await fetch(`${API}/pings/inbox`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return okJson(r);
+}
+
+export async function createPing(token: string, payload: any) {
+  const r = await fetch(`${API}/pings`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  return okJson(r);
+}
+
+export async function respond(token: string, pingId: string | number, status: string) {
+  const r = await fetch(`${API}/pings/${pingId}/respond`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ status }),
+  });
+  return okJson(r);
+}
