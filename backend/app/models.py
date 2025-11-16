@@ -82,7 +82,7 @@ class Ping(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # NEW: structured “vibe”
-    activity_type = Column(String, nullable=True)          # e.g. "DRINK", "GYM", "CUSTOM"
+    activity_type = Column(String, nullable=True)  # e.g. "DRINK", "GYM", "CUSTOM"
     activity_custom_label = Column(String, nullable=True)  # for CUSTOM
 
     @property
