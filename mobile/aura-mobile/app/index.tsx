@@ -1,68 +1,78 @@
 // app/index.tsx
 import { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet } from "react-native";
+import { TextInput, Button, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { login } from "../lib/auth";
+import { saveToken } from "../lib/storage";
+import { AuraView, AuraText } from "../constants/AuraView";
+import { theme } from "../constants/theme";
 
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleLogin() {
     try {
-      setLoading(true);
-      setError(null);
-      await login(email, password);
+      setError("");
+      const res = await login(email, password);
+      await saveToken(res.access_token);
       router.replace("/(tabs)");
-    } catch (err: any) {
-      console.error("Login error:", err);
-      setError(err.message ?? "Login failed – check email/password");
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      setError("Login failed – check email/password");
     }
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Aura ✨</Text>
+    <AuraView>
+      <AuraText style={styles.title}>Aura ✨</AuraText>
 
       <TextInput
         placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
+        placeholderTextColor={theme.colors.muted}
         autoCapitalize="none"
         keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
         style={styles.input}
       />
 
       <TextInput
         placeholder="Password"
+        placeholderTextColor={theme.colors.muted}
+        secureTextEntry
         value={password}
         onChangeText={setPassword}
-        secureTextEntry
         style={styles.input}
       />
 
-      {error && <Text style={styles.error}>{error}</Text>}
-      {loading && <Text style={styles.info}>Logging in…</Text>}
+      {error ? <AuraText style={styles.error}>{error}</AuraText> : null}
 
-      <Button title="Log in" onPress={handleLogin} disabled={loading} />
-    </View>
+      <Button title="Log in" color={theme.colors.accent} onPress={handleLogin} />
+    </AuraView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", padding: 24 },
-  title: { fontSize: 32, textAlign: "center", marginBottom: 32 },
+  title: {
+    fontSize: 32,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 32,
+    color: theme.colors.text,
+  },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
+    borderColor: theme.colors.accent,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 14,
+    color: theme.colors.text,
+    backgroundColor: "#111",
   },
-  error: { color: "red", marginBottom: 8 },
-  info: { color: "green", marginBottom: 8 },
+  error: {
+    color: "#ff4d4f",
+    marginBottom: 10,
+  },
 });

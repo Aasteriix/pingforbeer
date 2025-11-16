@@ -1,15 +1,27 @@
-import { View, Text, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
+import { AuraView, AuraText } from "../../constants/AuraView";
+import { theme } from "../../constants/theme";
 
 export default function FriendsScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Friends 👥</Text>
-      <Text>Här kommer friendlist + search sen.</Text>
-    </View>
+    <AuraView>
+      <AuraText style={styles.title}>Friends 👥</AuraText>
+      <AuraText style={styles.subtitle}>
+        Här kommer din friendlist + search sen.
+      </AuraText>
+    </AuraView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, justifyContent: "center" },
-  title: { fontSize: 28, fontWeight: "600", marginBottom: 12 },
+  title: {
+    fontSize: 28,
+    fontWeight: "600",
+    marginBottom: 8,
+    color: theme.colors.text,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: theme.colors.muted,
+  },
 });

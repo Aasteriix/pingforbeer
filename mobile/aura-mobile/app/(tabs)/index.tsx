@@ -1,12 +1,16 @@
 // app/(tabs)/index.tsx
 import { View, Text, StyleSheet } from "react-native";
+import { AuraView, AuraText } from "../../constants/AuraView";
+
 
 export default function HomeTab() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Aura Home ✨</Text>
-      <Text>Du är inloggad – här lägger vi pings/vibe senare.</Text>
-    </View>
+    <AuraView>
+      <AuraText style={{ fontSize: 24, fontWeight: "600", marginBottom: 8 }}>
+        Home 🏠
+      </AuraText>
+      <AuraText>Welcome to Aura – your social energy radar ✨</AuraText>
+    </AuraView>
   );
 }
 
