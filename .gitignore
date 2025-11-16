@@ -1,11 +1,41 @@
+# OS
+.DS_Store
 
-__pycache__/
-*.pyc
+# Python / Backend
 venv/
+.env
+.env.*
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Node / Frontend / Mobile
 node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 dist/
 build/
-frontend/.vite/
-.env
-__pycache__/
-*.pyc
+.expo/
+.expo-shared/
+web-build/
+*.log
+
+# Editors / IDE
+.idea/
+.vscode/
+*.iml
+
+# Docker / misc
+.gitpod/
+*.tmp
+
+# Local archives
+aura.zip
