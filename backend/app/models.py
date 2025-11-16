@@ -2,11 +2,31 @@
 import enum
 import secrets
 from datetime import datetime
+from typing import Optional
 
-from sqlalchemy import (Column, DateTime, Enum, ForeignKey, Integer, String,
-                        Text, UniqueConstraint)
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 
 from .db import Base
+
+PRESET_ACTIVITIES = {
+    "DRINK": "Drink",
+    "WALK": "Walk",
+    "COFFEE": "Coffee",
+    "GYM": "Gym",
+    "DINNER": "Dinner",
+    "GAME": "Game night",
+    "STUDY": "Study",
+    "CHILL": "Chill",
+}
 
 
 class FriendshipStatus(str, enum.Enum):
@@ -60,6 +80,21 @@ class Ping(Base):
         String, default=lambda: secrets.token_urlsafe(16), nullable=False
     )
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    # NEW: structured “vibe”
+    activity_type = Column(String, nullable=True)          # e.g. "DRINK", "GYM", "CUSTOM"
+    activity_custom_label = Column(String, nullable=True)  # for CUSTOM
+
+    @property
+    def activity_label(self) -> Optional[str]:
+        """Human-friendly label that frontend can visa direkt."""
+        if self.activity_type == "CUSTOM":
+            return (self.activity_custom_label or "").strip() or None
+
+        if self.activity_type in PRESET_ACTIVITIES:
+            return PRESET_ACTIVITIES[self.activity_type]
+
+        return None
 
 
 class PingInvite(Base):

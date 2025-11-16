@@ -10,7 +10,8 @@ anyio
 pydantic[email]
 alembic
 authlib
-ppasslib[bcrypt] python-jose
+passlib[bcrypt]
+python-jose[cryptography]
 black
 isort
 pytest-cov

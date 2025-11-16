@@ -179,6 +179,10 @@ def aura_out(p: models.Ping, db: Session) -> schemas.PingOut:
             for i in invites
         ],
         ics_public_url=ics_url,
+        # NEW: activity fields
+        activity_type=p.activity_type,
+        activity_custom_label=p.activity_custom_label,
+        activity_label=p.activity_label,
     )
 
 
@@ -217,12 +221,15 @@ def create_ping(
     if not clean_invitees:
         raise HTTPException(400, "No valid invitees after filtering")
 
+    # NEW: spara vibe-info också
     p = models.Ping(
         creator_id=user.id,
         title=data.title,
         starts_at=data.starts_at,
         location=data.location,
         notes=(data.notes or "").strip(),
+        activity_type=data.activity_type,
+        activity_custom_label=data.activity_custom_label,
     )
     db.add(p)
     db.commit()
